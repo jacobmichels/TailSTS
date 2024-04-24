@@ -19,6 +19,17 @@ async fn main() -> Result<()> {
 }
 
 async fn run() -> Result<()> {
+    // this function is where I can set up dependencies.
+    // I could create an "App" or "TailSTS" module with a run function that
+    // takes in the dependencies and uses them.
+
+    // What dependencies should I have?
+    // - a of policy fetcher
+    // - a policy validator
+    // - a jwks fetcher
+    // - a server(?)
+    // and some more
+
     let args = Cli::parse();
     debug!("CLI args parsed");
 
