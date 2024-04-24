@@ -3,7 +3,6 @@ use color_eyre::Result;
 use env_logger::Env;
 use jsonwebtoken::jwk::{Jwk, JwkSet};
 use log::{debug, info};
-use serde::Deserialize;
 
 use crate::cli::Cli;
 
