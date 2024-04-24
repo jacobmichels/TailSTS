@@ -2,18 +2,22 @@ use color_eyre::{
     eyre::{bail, Context},
     Result,
 };
+use jsonwebtoken::jwk::JwkSet;
 use serde::Deserialize;
 use std::{
-    fs::{self, DirEntry},
+    fs::{self},
     path::Path,
 };
 use toml::Value;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Policy {
-    issuer: String,
-    subject: String,
-    permissions: Value,
+    pub issuer: String,
+    pub subject: String,
+    pub permissions: Value,
+    pub jwks_url: String,
+    #[serde(skip)]
+    pub jwks: Option<JwkSet>,
 }
 
 impl Policy {
@@ -23,10 +27,20 @@ impl Policy {
     }
 }
 
-pub fn prepare(policies_dir: &Path) -> Result<Vec<Policy>> {
-    let policies = read_policy_files(policies_dir).wrap_err("failed to read policies")?;
+pub async fn prepare(policies_dir: &Path) -> Result<Vec<Policy>> {
+    let mut policies = read_policy_files(policies_dir).wrap_err("failed to read policies")?;
     // TODO: make thos function fail if validation fails
     policies.iter().for_each(|p| p.validate().unwrap());
+
+    for policy in policies.iter_mut() {
+        let jwks: JwkSet = reqwest::get(policy.jwks_url.clone())
+            .await
+            .unwrap()
+            .json()
+            .await
+            .unwrap();
+        policy.jwks = Some(jwks);
+    }
 
     Ok(policies)
 }
@@ -37,29 +51,20 @@ fn read_policy_files(policies_dir: &Path) -> Result<Vec<Policy>> {
     }
 
     // TODO: remove the prints and collects
-    let valid_entries: Vec<DirEntry> = policies_dir
-        .read_dir()?
-        .filter_map(|entry| match entry {
-            Ok(entry) => Some(entry),
-            Err(_) => {
-                //TODO: log error
-                None
-            }
-        })
-        .collect();
-    println!("Found {} valid entries", valid_entries.len());
-
-    let file_entries: Vec<DirEntry> = valid_entries
-        .into_iter()
-        .filter(|entry| match entry.file_type() {
-            Ok(t) => t.is_file(),
-            Err(_) => {
-                //TODO: log error
-                false
-            }
-        })
-        .collect();
-    println!("Found {} file entries", file_entries.len());
+    let valid_entries = policies_dir.read_dir()?.filter_map(|entry| match entry {
+        Ok(entry) => Some(entry),
+        Err(_) => {
+            //TODO: log error
+            None
+        }
+    });
+    let file_entries = valid_entries.filter(|entry| match entry.file_type() {
+        Ok(t) => t.is_file(),
+        Err(_) => {
+            //TODO: log error
+            false
+        }
+    });
 
     let mut policies = Vec::new();
     for file in file_entries {
