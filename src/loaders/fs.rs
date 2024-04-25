@@ -1,4 +1,3 @@
-use super::{Policy, PolicyProvider};
 use color_eyre::{
     eyre::{bail, Context},
     Result,
@@ -6,16 +5,21 @@ use color_eyre::{
 use log::warn;
 use std::{fs, path::PathBuf};
 
-pub struct FsPolicyProvider {
+use crate::policy::LocalPolicy;
+
+use super::PolicyLoader;
+
+// Load local policies from the file system
+pub struct Fs {
     policy_path: PathBuf,
 }
 
-impl FsPolicyProvider {
-    pub fn new(policy_path: PathBuf) -> FsPolicyProvider {
-        FsPolicyProvider { policy_path }
+impl Fs {
+    pub fn new(policy_path: PathBuf) -> Fs {
+        Fs { policy_path }
     }
 
-    fn read_policy_files(&self) -> Result<Vec<Policy>> {
+    fn read_policy_files(&self) -> Result<Vec<LocalPolicy>> {
         if !self.policy_path.is_dir() {
             bail!("policy_path is not a directory")
         }
@@ -43,8 +47,8 @@ impl FsPolicyProvider {
                 }
             });
 
-        // Read each file, attempting to deserialize it to a policy
-        let policies: Vec<Policy> = files
+        // Read each file, attempting to deserialize it to a LocalPolicy
+        let policies: Vec<LocalPolicy> = files
             .filter_map(|file| {
                 let contents = match fs::read_to_string(file.path()) {
                     Ok(contents) => contents,
@@ -67,8 +71,8 @@ impl FsPolicyProvider {
     }
 }
 
-impl PolicyProvider for FsPolicyProvider {
-    fn get_policies(&self) -> Result<Vec<Policy>> {
+impl PolicyLoader for Fs {
+    fn load_policies(&self) -> Result<Vec<LocalPolicy>> {
         let policies = self
             .read_policy_files()
             .wrap_err("failed to read policies")?;
