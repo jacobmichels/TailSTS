@@ -1,55 +1,38 @@
 use clap::Parser;
 use color_eyre::Result;
 use env_logger::Env;
-use jsonwebtoken::jwk::{Jwk, JwkSet};
-use log::{debug, info};
+use log::debug;
 
-use crate::cli::Cli;
+use crate::{
+    cli::Cli, jwks::reqwestfetcher::ReqwestJWKSFetcher, policy::fspolicyprovider::FsPolicyProvider,
+};
 
 mod cli;
+mod jwks;
 mod policy;
-mod server;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     color_eyre::install()?;
-    configure_logging();
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
 
-    run().await
-}
+    let args = Cli::parse();
+    debug!("CLI args parsed");
 
-async fn run() -> Result<()> {
     // this function is where I can set up dependencies.
     // I could create an "App" or "TailSTS" module with a run function that
     // takes in the dependencies and uses them.
 
     // What dependencies should I have?
-    // - a of policy fetcher
-    // - a policy validator
+    // - a policy provider
     // - a jwks fetcher
     // - a server(?)
-    // and some more
 
-    let args = Cli::parse();
-    debug!("CLI args parsed");
+    // TODO: add another PolicyProvider that wraps a PolicyProvider and validates the policies before returning them
+    let _provider = FsPolicyProvider::new(args.policies_dir);
 
-    let policies = policy::prepare(&args.policies_dir).await?;
-    info!("Read {} policies", policies.len());
-
-    // TODO: gate displaying policies behind a cli flag
-    for policy in policies.iter() {
-        debug!("{:?}", policy);
-    }
-
-    let jwks_list: Vec<JwkSet> = policies.iter().map(|p| p.jwks.clone().unwrap()).collect();
-    let jwks_list: Vec<Jwk> = jwks_list.iter().flat_map(|set| set.keys.clone()).collect();
-    let jwks = JwkSet { keys: jwks_list };
-
-    server::start(policies, jwks).await?;
+    // TODO: add a wrapping caching fetcher
+    let _fetcher = ReqwestJWKSFetcher::new();
 
     Ok(())
-}
-
-fn configure_logging() {
-    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init()
 }
