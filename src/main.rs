@@ -1,7 +1,11 @@
+use std::collections::HashMap;
+
 use clap::Parser;
 use color_eyre::Result;
 use env_logger::Env;
+use jwks::JWKSFetcher;
 use log::debug;
+use policy::PolicyProvider;
 
 use crate::{
     cli::Cli, jwks::reqwestfetcher::ReqwestJWKSFetcher, policy::fspolicyprovider::FsPolicyProvider,
@@ -29,10 +33,16 @@ async fn main() -> Result<()> {
     // - a server(?)
 
     // TODO: add another PolicyProvider that wraps a PolicyProvider and validates the policies before returning them
-    let _provider = FsPolicyProvider::new(args.policies_dir);
+    let provider = FsPolicyProvider::new(args.policies_dir);
 
-    // TODO: add a wrapping caching fetcher
-    let _fetcher = ReqwestJWKSFetcher::new();
+    // My current thought is that I'll pass in the local policy provider to the JWKS fetcher so that it can return an enriched policy of sorts with the fetched JWKS
+    // Naming things is hard though. Where would such an enriched policy type live? My brain says in the policy module, but it doesn't get returned by the policy module, but the jwks module.
+    // Maybe I need to reconsider these modules.
+    let _fetcher = ReqwestJWKSFetcher::new(provider);
 
+    Ok(())
+}
+
+async fn run() -> Result<()> {
     Ok(())
 }
