@@ -3,10 +3,10 @@ use color_eyre::Result;
 use env_logger::Env;
 use log::debug;
 
-use crate::{cli::Cli, jwks::reqwestfetcher::ReqwestJWKSFetcher};
+use crate::cli::Cli;
 
 mod cli;
-mod jwks;
+mod fetchers;
 mod loaders;
 mod policy;
 
@@ -33,7 +33,7 @@ async fn main() -> Result<()> {
 
     // My current thought is that I'll pass in the local policy loader to the JWKS fetcher so that it can return an enriched policy of sorts with the fetched JWKS
     // idk though... is JWKS too specific of a module? The goal of it is to get the public key to verify the token. Maybe I call it verifier?
-    let _fetcher = ReqwestJWKSFetcher::new(provider);
+    let _fetcher = fetchers::Reqwest::new(provider);
 
     Ok(())
 }

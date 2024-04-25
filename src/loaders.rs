@@ -7,7 +7,13 @@ use std::{fs, path::PathBuf};
 
 use crate::policy::LocalPolicy;
 
-use super::PolicyLoader;
+// This module holds functionality related to loading policies.
+// This could be fetching them from the file system, environment, remote bucket, etc.
+// Loaders implement the PolicyLoader trait.
+
+pub trait PolicyLoader {
+    fn load_policies(&self) -> Result<Vec<LocalPolicy>>;
+}
 
 // Load local policies from the file system
 pub struct Fs {
