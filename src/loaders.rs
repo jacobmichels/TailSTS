@@ -16,13 +16,13 @@ pub trait PolicyLoader {
 }
 
 // Load local policies from the file system
-pub struct Fs {
+pub struct FsPolicyLoader {
     policy_path: PathBuf,
 }
 
-impl Fs {
-    pub fn new(policy_path: PathBuf) -> Fs {
-        Fs { policy_path }
+impl FsPolicyLoader {
+    pub fn new(policy_path: PathBuf) -> FsPolicyLoader {
+        FsPolicyLoader { policy_path }
     }
 
     fn read_policy_files(&self) -> Result<Vec<LocalPolicy>> {
@@ -77,7 +77,7 @@ impl Fs {
     }
 }
 
-impl PolicyLoader for Fs {
+impl PolicyLoader for FsPolicyLoader {
     fn load_policies(&self) -> Result<Vec<LocalPolicy>> {
         let policies = self
             .read_policy_files()
