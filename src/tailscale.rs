@@ -18,16 +18,15 @@ pub struct OAuth2Requester {
 }
 
 impl OAuth2Requester {
-    fn new(
+    pub fn new(
         client_id: String,
         client_secret: Secret<String>,
-        auth_url: String,
         token_url: String,
     ) -> Result<OAuth2Requester> {
         let oauth = BasicClient::new(
             ClientId::new(client_id),
             Some(ClientSecret::new(client_secret.expose_secret().clone())),
-            AuthUrl::new(auth_url)?,
+            AuthUrl::new("".to_string())?, // this field is ignored in the Client Credentials flow https://docs.rs/oauth2/latest/oauth2/struct.Client.html#method.new
             Some(TokenUrl::new(token_url)?),
         );
 
