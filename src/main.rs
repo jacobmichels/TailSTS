@@ -14,13 +14,19 @@ mod tailscale;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    color_eyre::install()?;
-    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
+    init().expect("Failed to initialize required components");
 
     let args = Cli::parse();
     debug!("CLI args parsed");
 
     run(args).await?;
+
+    Ok(())
+}
+
+fn init() -> Result<()> {
+    color_eyre::install()?;
+    env_logger::Builder::from_env(Env::default().default_filter_or("debug")).init();
 
     Ok(())
 }
