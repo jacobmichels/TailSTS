@@ -14,6 +14,17 @@ pub struct LocalPolicy {
     pub permissions: HashMap<String, String>,
 }
 
+impl LocalPolicy {
+    pub fn attach_jwks(self, jwks: JwkSet) -> PolicyWithJWKS {
+        PolicyWithJWKS {
+            issuer: self.issuer,
+            jwks,
+            permissions: self.permissions,
+            subject: self.subject,
+        }
+    }
+}
+
 // A policy without its JWKS loaded
 #[derive(Deserialize, Debug)]
 pub struct PolicyWithJWKS {
