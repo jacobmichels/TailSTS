@@ -9,6 +9,7 @@ mod cli;
 mod fetchers;
 mod loaders;
 mod policy;
+mod tailscale;
 
 #[tokio::main]
 async fn main() -> Result<()> {
