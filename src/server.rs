@@ -15,7 +15,7 @@ use jsonwebtoken::{
     Algorithm, DecodingKey, Validation,
 };
 use log::{debug, error, warn};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 struct AppState {
@@ -65,6 +65,11 @@ struct TokenRequest {
     scopes: HashMap<String, String>,
 }
 
+#[derive(Serialize)]
+struct TokenResponse {
+    token: String,
+}
+
 #[derive(Deserialize)]
 struct Claims {
     iss: String,        // Optional. Issuer
@@ -79,7 +84,7 @@ async fn handle_token_request(
     State(state): State<Arc<AppState>>,
     AuthBearer(token): AuthBearer,
     Json(payload): Json<TokenRequest>,
-) -> StatusCode {
+) -> (StatusCode, Json<Option<TokenResponse>>) {
     // this is the handler that clients will hit asking for tailscale access tokens
     // how to proceed:
     // 1. fetch and validate the token with jwks
@@ -90,14 +95,14 @@ async fn handle_token_request(
     let header = decode_header(&token).unwrap();
     if !ACCEPTABLE_ALGORITHMS.contains(&header.alg) {
         warn!("algorithm {:?} not acceptable", &header.alg);
-        return StatusCode::BAD_REQUEST;
+        return (StatusCode::BAD_REQUEST, Json(None));
     }
 
     let kid = match header.kid {
         Some(kid) => kid,
         None => {
             warn!("no kid in header");
-            return StatusCode::BAD_REQUEST;
+            return (StatusCode::BAD_REQUEST, Json(None));
         }
     };
 
@@ -105,7 +110,7 @@ async fn handle_token_request(
         Some(policy) => policy,
         None => {
             warn!("no policies matched");
-            return StatusCode::UNAUTHORIZED;
+            return (StatusCode::UNAUTHORIZED, Json(None));
         }
     };
 
@@ -118,7 +123,7 @@ async fn handle_token_request(
         Ok(key) => key,
         Err(e) => {
             error!("failed to create DecodingKey: {}", e);
-            return StatusCode::INTERNAL_SERVER_ERROR;
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(None));
         }
     };
 
@@ -127,7 +132,7 @@ async fn handle_token_request(
         Ok(claims) => claims,
         Err(e) => {
             error!("token failed to decode: {}", e);
-            return StatusCode::UNAUTHORIZED;
+            return (StatusCode::UNAUTHORIZED, Json(None));
         }
     };
 
@@ -137,7 +142,7 @@ async fn handle_token_request(
     for (scope_name, scope_value) in requested_scopes.iter() {
         if !policy.check_scope_allowed(&scope_name, &scope_value) {
             debug!("scope {}:{} not allowed", scope_name, scope_value);
-            return StatusCode::UNAUTHORIZED;
+            return (StatusCode::UNAUTHORIZED, Json(None));
         }
     }
 
@@ -147,11 +152,16 @@ async fn handle_token_request(
         Ok(token) => token,
         Err(e) => {
             error!("access token request failed: {}", e);
-            return StatusCode::INTERNAL_SERVER_ERROR;
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(None));
         }
     };
 
-    StatusCode::OK
+    (
+        StatusCode::OK,
+        Json(Some(TokenResponse {
+            token: token.expose_secret().clone(),
+        })),
+    )
 }
 
 fn match_policy(policies: Vec<PolicyWithJWKS>, kid: String) -> Option<(PolicyWithJWKS, Jwk)> {
