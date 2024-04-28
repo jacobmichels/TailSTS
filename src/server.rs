@@ -14,7 +14,7 @@ use jsonwebtoken::{
     jwk::{Jwk, JwkSet},
     Algorithm, DecodingKey, Validation,
 };
-use log::{debug, error};
+use log::{debug, error, warn};
 use serde::Deserialize;
 
 #[derive(Clone)]
@@ -89,17 +89,24 @@ async fn handle_token_request(
 
     let header = decode_header(&token).unwrap();
     if !ACCEPTABLE_ALGORITHMS.contains(&header.alg) {
+        warn!("algorithm {:?} not acceptable", &header.alg);
         return StatusCode::BAD_REQUEST;
     }
 
     let kid = match header.kid {
         Some(kid) => kid,
-        None => return StatusCode::BAD_REQUEST,
+        None => {
+            warn!("no kid in header");
+            return StatusCode::BAD_REQUEST;
+        }
     };
 
     let (policy, jwk) = match match_policy(state.policies.clone(), kid) {
         Some(policy) => policy,
-        None => return StatusCode::UNAUTHORIZED,
+        None => {
+            warn!("no policies matched");
+            return StatusCode::UNAUTHORIZED;
+        }
     };
 
     let mut validation = Validation::new(policy.algorithm);
@@ -115,6 +122,7 @@ async fn handle_token_request(
         }
     };
 
+    // TODO: is there anything to do with claims?
     let claims = match decode::<Claims>(&token, &decoding_key, &validation) {
         Ok(claims) => claims,
         Err(e) => {
