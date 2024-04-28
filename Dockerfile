@@ -5,6 +5,7 @@ WORKDIR /build
 
 COPY . .
 
+# Could optimize this build with cargo-chef https://github.com/LukeMathWalker/cargo-chef
 RUN cargo build --release
 
 FROM debian:bookworm-20240423-slim@sha256:155280b00ee0133250f7159b567a07d7cd03b1645714c3a7458b2287b0ca83cb
