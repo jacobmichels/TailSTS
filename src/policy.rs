@@ -12,7 +12,7 @@ pub struct LocalPolicy {
     pub subject: String,
     pub algorithm: String,
     pub jwks_url: String,
-    pub permissions: HashMap<String, String>,
+    pub allowed_scopes: HashMap<String, String>,
 }
 
 impl LocalPolicy {
@@ -30,7 +30,7 @@ impl LocalPolicy {
             issuer: self.issuer,
             jwks,
             algorithm: alg,
-            permissions: self.permissions,
+            allowed_scopes: self.allowed_scopes,
             subject: self.subject,
         }
     }
@@ -43,5 +43,24 @@ pub struct PolicyWithJWKS {
     pub subject: String,
     pub algorithm: Algorithm,
     pub jwks: JwkSet,
-    pub permissions: HashMap<String, String>,
+    pub allowed_scopes: HashMap<String, String>,
+}
+
+impl PolicyWithJWKS {
+    pub fn check_scope_allowed(&self, scope_name: &str, scope_value: &str) -> bool {
+        match self.allowed_scopes.get(scope_name) {
+            Some(allowed_value) => {
+                if allowed_value == "read" && scope_value == "read" {
+                    true
+                } else if allowed_value == "write" && scope_value == "write" {
+                    true
+                } else if allowed_value == "write" && scope_value == "read" {
+                    true
+                } else {
+                    false
+                }
+            }
+            None => false,
+        }
+    }
 }
