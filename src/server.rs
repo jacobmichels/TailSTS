@@ -134,7 +134,7 @@ async fn handle_token_request(
     debug!("token validated");
 
     let requested_scopes = payload.scopes;
-    for (scope_name, scope_value) in requested_scopes {
+    for (scope_name, scope_value) in requested_scopes.iter() {
         if !policy.check_scope_allowed(&scope_name, &scope_value) {
             debug!("scope {}:{} not allowed", scope_name, scope_value);
             return StatusCode::UNAUTHORIZED;
@@ -142,6 +142,14 @@ async fn handle_token_request(
     }
 
     debug!("requested scopes allowed");
+
+    let token = match state.requester.request_access_token(requested_scopes).await {
+        Ok(token) => token,
+        Err(e) => {
+            error!("access token request failed: {}", e);
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
+    };
 
     StatusCode::OK
 }

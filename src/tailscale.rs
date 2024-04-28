@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::async_trait;
 use color_eyre::Result;
 use dyn_clone::DynClone;
@@ -9,7 +11,8 @@ use redact::Secret;
 
 #[async_trait]
 pub trait AccessTokenRequester: DynClone + Send + Sync {
-    async fn request_access_token(&self, scopes: Vec<String>) -> Result<Secret<String>>;
+    async fn request_access_token(&self, scopes: HashMap<String, String>)
+        -> Result<Secret<String>>;
 }
 
 dyn_clone::clone_trait_object!(AccessTokenRequester);
@@ -40,8 +43,20 @@ impl OAuth2Requester {
 
 #[async_trait]
 impl AccessTokenRequester for OAuth2Requester {
-    async fn request_access_token(&self, scopes: Vec<String>) -> Result<Secret<String>> {
-        let scopes = scopes.iter().map(|s| Scope::new(s.clone()));
+    async fn request_access_token(
+        &self,
+        scopes: HashMap<String, String>,
+    ) -> Result<Secret<String>> {
+        let scopes: Vec<Scope> = scopes
+            .iter()
+            .map(|(key, value)| {
+                if value == "write" {
+                    return key.clone();
+                }
+                format!("{}:{}", key, value)
+            })
+            .map(|s| Scope::new(s))
+            .collect();
 
         let response = self
             .oauth

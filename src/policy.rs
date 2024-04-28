@@ -43,7 +43,7 @@ pub struct PolicyWithJWKS {
     pub subject: String,
     pub algorithm: Algorithm,
     pub jwks: JwkSet,
-    pub allowed_scopes: HashMap<String, String>,
+    pub allowed_scopes: HashMap<String, String>, // TODO: I don't like using strings to represent scopes, but don't want to update this app when new scopes are made available. Any way to look at the Tailscale API to get available scopes??
 }
 
 impl PolicyWithJWKS {
