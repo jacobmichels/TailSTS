@@ -9,15 +9,15 @@ pub struct Cli {
     #[arg(short, long, default_value = "policies")]
     pub policies_dir: PathBuf,
 
-    #[arg(short, long)]
+    #[arg(long)]
     pub tailscale_client_id: String,
 
-    #[arg(short, long)]
+    #[arg(long)]
     pub tailscale_client_secret: Secret<String>,
 
-    #[arg(short, long)]
+    #[arg(long, default_value = "https://api.tailscale.com/api/v2/oauth/token")]
     pub tailscale_token_url: String,
 
-    #[arg(short, long, default_value_t = 8080)]
+    #[arg(long, default_value_t = 8080)]
     pub port: u32,
 }
