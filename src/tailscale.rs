@@ -30,7 +30,7 @@ impl OAuth2Requester {
         let oauth = BasicClient::new(
             ClientId::new(client_id),
             Some(ClientSecret::new(client_secret.expose_secret().clone())),
-            AuthUrl::new("".to_string())?, // this field is ignored in the Client Credentials flow https://docs.rs/oauth2/latest/oauth2/struct.Client.html#method.new
+            AuthUrl::new(token_url.clone())?, // this field is ignored in the Client Credentials flow https://docs.rs/oauth2/latest/oauth2/struct.Client.html#method.new
             Some(TokenUrl::new(token_url)?),
         );
 
