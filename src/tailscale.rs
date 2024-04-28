@@ -1,5 +1,6 @@
 use axum::async_trait;
 use color_eyre::Result;
+use dyn_clone::DynClone;
 use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, Scope, TokenResponse, TokenUrl};
 use redact::Secret;
 
@@ -7,12 +8,15 @@ use redact::Secret;
 // Requesters implement the AccessTokenRequester trait.
 
 #[async_trait]
-pub trait AccessTokenRequester {
+pub trait AccessTokenRequester: DynClone + Send + Sync {
     async fn request_access_token(&self, scopes: Vec<String>) -> Result<Secret<String>>;
 }
 
+dyn_clone::clone_trait_object!(AccessTokenRequester);
+
 // OAuth2Requester requests access tokens using the oauth2 crate
 
+#[derive(Clone)]
 pub struct OAuth2Requester {
     oauth: BasicClient,
 }

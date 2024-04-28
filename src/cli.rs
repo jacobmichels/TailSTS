@@ -17,4 +17,7 @@ pub struct Cli {
 
     #[arg(short, long)]
     pub tailscale_token_url: String,
+
+    #[arg(short, long, default_value_t = 8080)]
+    pub port: u32,
 }

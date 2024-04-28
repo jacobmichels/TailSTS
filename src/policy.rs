@@ -26,7 +26,7 @@ impl LocalPolicy {
 }
 
 // A policy without its JWKS loaded
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct PolicyWithJWKS {
     pub issuer: String,
     pub subject: String,

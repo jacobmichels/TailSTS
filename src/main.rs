@@ -5,11 +5,11 @@ use log::debug;
 
 use crate::cli::Cli;
 
-mod app;
 mod cli;
 mod fetchers;
 mod loaders;
 mod policy;
+mod server;
 mod tailscale;
 
 #[tokio::main]
@@ -46,10 +46,11 @@ async fn run(c: Cli) -> Result<()> {
     )?;
 
     debug!("dependencies initialized, starting app");
-    app::start(
+    server::start(
         Box::new(fs_loader),
         Box::new(reqwest_fetcher),
         Box::new(tailscale),
+        c.port,
     )
     .await?;
 
