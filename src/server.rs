@@ -71,11 +71,7 @@ struct TokenResponse {
 }
 
 #[derive(Deserialize)]
-struct Claims {
-    iss: String,        // Optional. Issuer
-    nbf: Option<usize>, // Optional. Not Before (as UTC timestamp)
-    sub: String,        // Optional. Subject (whom token refers to)
-}
+struct Claims {}
 
 const ACCEPTABLE_ALGORITHMS: [Algorithm; 3] =
     [Algorithm::RS256, Algorithm::RS384, Algorithm::RS512];
@@ -128,7 +124,7 @@ async fn handle_token_request(
     };
 
     // TODO: is there anything to do with claims?
-    let claims = match decode::<Claims>(&token, &decoding_key, &validation) {
+    let _claims = match decode::<Claims>(&token, &decoding_key, &validation) {
         Ok(claims) => claims,
         Err(e) => {
             error!("token failed to decode: {}", e);
@@ -140,7 +136,7 @@ async fn handle_token_request(
 
     let requested_scopes = payload.scopes;
     for (scope_name, scope_value) in requested_scopes.iter() {
-        if !policy.check_scope_allowed(&scope_name, &scope_value) {
+        if !policy.check_scope_allowed(scope_name, scope_value) {
             debug!("scope {}:{} not allowed", scope_name, scope_value);
             return (StatusCode::UNAUTHORIZED, Json(None));
         }

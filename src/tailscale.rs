@@ -55,7 +55,7 @@ impl AccessTokenRequester for OAuth2Requester {
                 }
                 format!("{}:{}", key, value)
             })
-            .map(|s| Scope::new(s))
+            .map(Scope::new)
             .collect();
 
         let response = self
