@@ -15,7 +15,7 @@ impl AcceptedAlgorithm {
     }
 
     pub fn wrapped(&self) -> Algorithm {
-        self.0.clone()
+        self.0
     }
 }
 
