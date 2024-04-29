@@ -50,15 +50,9 @@ impl PolicyWithJWKS {
     pub fn check_scope_allowed(&self, scope_name: &str, scope_value: &str) -> bool {
         match self.allowed_scopes.get(scope_name) {
             Some(allowed_value) => {
-                if allowed_value == "read" && scope_value == "read" {
-                    true
-                } else if allowed_value == "write" && scope_value == "write" {
-                    true
-                } else if allowed_value == "write" && scope_value == "read" {
-                    true
-                } else {
-                    false
-                }
+                (allowed_value == "read" && scope_value == "read")
+                    || (allowed_value == "write" && scope_value == "write")
+                    || (allowed_value == "write" && scope_value == "read")
             }
             None => false,
         }
