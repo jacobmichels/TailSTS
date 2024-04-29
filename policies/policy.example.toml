@@ -2,4 +2,4 @@ issuer = ["hello@world.com"]
 algorithm = "RS256"
 subject = "test"
 jwks_url = "hello@world.com/.well-known/jwks.json"
-permissions = { acls = "write", devices = "read" }
+allowed_scopes = { acls = "write", devices = "read" }
