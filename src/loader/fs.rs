@@ -1,19 +1,14 @@
+use std::{fs, path::PathBuf};
+
 use color_eyre::{
     eyre::{bail, Context},
     Result,
 };
 use log::warn;
-use std::{fs, path::PathBuf};
 
 use crate::policy::LocalPolicy;
 
-// This module holds functionality related to loading policies.
-// This could be fetching them from the file system, environment, remote bucket, etc.
-// Loaders implement the PolicyLoader trait.
-
-pub trait PolicyLoader {
-    fn load_policies(&self) -> Result<Vec<LocalPolicy>>;
-}
+use super::PolicyLoader;
 
 // Load local policies from the file system
 pub struct FsPolicyLoader {
@@ -82,8 +77,6 @@ impl PolicyLoader for FsPolicyLoader {
         let policies = self
             .read_policy_files()
             .wrap_err("failed to read policies")?;
-
-        // TODO: Validate these policies before returning them
 
         Ok(policies)
     }

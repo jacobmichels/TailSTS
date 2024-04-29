@@ -7,7 +7,7 @@ use crate::cli::Cli;
 
 mod cli;
 mod fetchers;
-mod loaders;
+mod loader;
 mod policy;
 mod server;
 mod tailscale;
@@ -32,10 +32,10 @@ fn init() -> Result<()> {
 }
 
 async fn run(c: Cli) -> Result<()> {
-    // this function is where I can set up dependencies.
+    // this function is where I set up dependencies.
 
-    // TODO: add another PolicyLoader that wraps a PolicyLoader and validates the policies before returning them
-    let fs_loader = loaders::FsPolicyLoader::new(c.policies_dir);
+    let fs_loader = loader::FsPolicyLoader::new(c.policies_dir);
+    let validating_loader = loader::ValidatingPolicyLoader::new(Box::new(fs_loader));
 
     let reqwest_fetcher = fetchers::ReqwestJWKSFetcher::new();
 
@@ -47,7 +47,7 @@ async fn run(c: Cli) -> Result<()> {
 
     debug!("dependencies initialized, starting app");
     server::start(
-        Box::new(fs_loader),
+        Box::new(validating_loader),
         Box::new(reqwest_fetcher),
         Box::new(tailscale),
         c.port,

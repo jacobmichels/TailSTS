@@ -2,8 +2,8 @@ use std::{collections::HashMap, sync::Arc};
 
 use crate::{
     fetchers::JWKSFetcher,
-    loaders::PolicyLoader,
-    policy::{LocalPolicy, PolicyWithJWKS},
+    loader::PolicyLoader,
+    policy::{LocalPolicy, PolicyWithJWKS, ACCEPTABLE_ALGORITHMS},
     tailscale::AccessTokenRequester,
 };
 use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
@@ -12,7 +12,7 @@ use color_eyre::Result;
 use jsonwebtoken::{
     decode, decode_header,
     jwk::{Jwk, JwkSet},
-    Algorithm, DecodingKey, Validation,
+    DecodingKey, Validation,
 };
 use log::{debug, error, warn};
 use serde::{Deserialize, Serialize};
@@ -54,7 +54,7 @@ async fn enrich_policies(
     let mut enriched_policies = Vec::with_capacity(policies.len());
     for policy in policies.into_iter() {
         let jwks: JwkSet = fetcher.fetch_jwks(&policy.jwks_url).await?;
-        enriched_policies.push(policy.attach_jwks(jwks));
+        enriched_policies.push(policy.attach_jwks(jwks)?);
     }
 
     Ok(enriched_policies)
@@ -72,9 +72,6 @@ struct TokenResponse {
 
 #[derive(Deserialize)]
 struct Claims {}
-
-const ACCEPTABLE_ALGORITHMS: [Algorithm; 3] =
-    [Algorithm::RS256, Algorithm::RS384, Algorithm::RS512];
 
 async fn handle_token_request(
     State(state): State<Arc<AppState>>,
@@ -110,7 +107,7 @@ async fn handle_token_request(
         }
     };
 
-    let mut validation = Validation::new(policy.algorithm);
+    let mut validation = Validation::new(policy.algorithm.wrapped());
     validation.validate_aud = false; // TOOD do I need to turn this off? the docs say this is a bad idea
     validation.sub = Some(policy.subject.clone());
     validation.iss = Some(policy.issuer.clone());
