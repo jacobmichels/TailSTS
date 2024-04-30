@@ -107,27 +107,9 @@ async fn handle_token_request(
         }
     };
 
-    let mut validation = Validation::new(policy.algorithm.wrapped());
-    validation.validate_aud = false; // TOOD do I need to turn this off? the docs say this is a bad idea
-    validation.sub = Some(policy.subject.clone());
-    validation.iss = Some(policy.issuer.clone());
-
-    let decoding_key = match DecodingKey::from_jwk(&jwk) {
-        Ok(key) => key,
-        Err(e) => {
-            error!("failed to create DecodingKey: {}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(None));
-        }
-    };
-
-    // TODO: is there anything to do with claims?
-    let _claims = match decode::<Claims>(&token, &decoding_key, &validation) {
-        Ok(claims) => claims,
-        Err(e) => {
-            error!("token failed to decode: {}", e);
-            return (StatusCode::UNAUTHORIZED, Json(None));
-        }
-    };
+    if let Err(status) = validate_token(token, &policy, &jwk) {
+        return (status, Json(None));
+    }
 
     debug!("token validated");
 
@@ -159,11 +141,36 @@ async fn handle_token_request(
 
 fn match_policy(policies: Vec<PolicyWithJWKS>, kid: String) -> Option<(PolicyWithJWKS, Jwk)> {
     for policy in policies {
-        let jwk = policy.jwks.find(&kid);
-        if let Some(jwk) = jwk {
+        if let Some(jwk) = policy.jwks.find(&kid) {
             return Some((policy.clone(), jwk.clone()));
         }
     }
 
     None
+}
+
+fn validate_token(token: String, policy: &PolicyWithJWKS, jwk: &Jwk) -> Result<(), StatusCode> {
+    let mut validation = Validation::new(policy.algorithm.wrapped());
+    validation.validate_aud = false; // TOOD do I need to turn this off? the docs say this is a bad idea
+    validation.sub = Some(policy.subject.clone());
+    validation.iss = Some(policy.issuer.clone());
+
+    let decoding_key = match DecodingKey::from_jwk(jwk) {
+        Ok(key) => key,
+        Err(e) => {
+            error!("failed to create DecodingKey: {}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    };
+
+    // TODO: is there anything to do with claims?
+    let _claims = match decode::<Claims>(&token, &decoding_key, &validation) {
+        Ok(claims) => claims,
+        Err(e) => {
+            error!("token failed to decode: {}", e);
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+    };
+
+    Ok(())
 }
