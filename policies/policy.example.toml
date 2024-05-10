@@ -1,5 +1,5 @@
-issuer = ["hello@world.com"]
+issuer = ["https://dev-sk666r25.us.auth0.com/"]
 algorithm = "RS256"
-subject = "test"
-jwks_url = "hello@world.com/.well-known/jwks.json"
+subject = "ZQ0LHZAloXxL51zNSMcQYQe01FLe02HN@clients"
+jwks_url = "https://dev-sk666r25.us.auth0.com/.well-known/jwks.json"
 allowed_scopes = { acls = "write", devices = "read" }
