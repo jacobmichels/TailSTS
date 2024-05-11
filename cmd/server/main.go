@@ -65,6 +65,11 @@ func startServer(policies []policy.Policy, decider Decider) error {
 			return
 		}
 
+		// It's possible to use jwt.ParseUnverified to parse the token without verifying the signature
+		parser := jwt.NewParser()
+		var claims jwt.RegisteredClaims
+		parser.ParseUnverified(string(auth[7:]), &claims)
+
 		token, err := jwt.Parse(string(auth[7:]), func(token *jwt.Token) (interface{}, error) {
 			if token.Method.Alg() != jwt.SigningMethodRS256.Name {
 				return nil, jwt.ErrInvalidKey
