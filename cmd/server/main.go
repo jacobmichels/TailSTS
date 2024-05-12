@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 
-	"github.com/MicahParks/jwkset"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 func main() {
 	ctx := context.Background()
 
 	policies := getPolicies(ctx)
-	decider := GateKeeper{Policies: policies}
 
-	err := startServer(policies, decider)
+	err := startServer(policies)
 	if err != nil {
 		panic(err)
 	}
@@ -32,7 +32,8 @@ func getPolicies(ctx context.Context) []policy.Policy {
 		panic(err)
 	}
 
-	for _, policy := range policies {
+	for i := range policies {
+		policy := &policies[i]
 		err := policy.LoadJwks(ctx)
 		if err != nil {
 			panic(err)
@@ -43,18 +44,20 @@ func getPolicies(ctx context.Context) []policy.Policy {
 }
 
 type Request struct {
-	Scopes map[string]string
+	Scopes []string
 }
 
-type GateKeeper struct {
-	Policies []policy.Policy
+func evaluate(policy policy.Policy, requestedScopes []string) bool {
+	for _, requestedScope := range requestedScopes {
+		if !slices.Contains(policy.AllowedScopes, requestedScope) {
+			return false
+		}
+	}
+
+	return true
 }
 
-func (d *GateKeeper) Evaluate(ctx context.Context, req Request, token jwt.Token) (bool, error) {
-	return false, nil
-}
-
-func startServer(policies []policy.Policy, decider GateKeeper) error {
+func startServer(policies []policy.Policy) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /", func(w http.ResponseWriter, r *http.Request) {
 		// perform basic validation of the format of the request
@@ -87,28 +90,52 @@ func startServer(policies []policy.Policy, decider GateKeeper) error {
 		}
 
 		// find the policy that matches the token's issuer
-		policy := findByIssuer(r.Context(), policies, claims.Issuer)
+		policy := findByIssuer(policies, claims.Issuer)
 		if policy == nil {
 			http.Error(w, "no matching policy", http.StatusUnauthorized)
 			return
 		}
 
-		// use that policy's JWKs to verify the token
-		token, err := jwt.Parse(string(auth[7:]), func(token *jwt.Token) (any, error) {
+		// use that policy's JWKS to verify the token
+		_, err = jwt.Parse(string(auth[7:]), func(token *jwt.Token) (any, error) {
 			return policy.Jwks.Keyfunc(token)
 		}, jwt.WithValidMethods([]string{policy.Algorithm}))
 
-		switch {
-		case token.Valid:
-			w.Write([]byte("OK"))
-		case errors.Is(err, jwt.ErrTokenMalformed):
-			http.Error(w, "malformed token", http.StatusUnauthorized)
-		case errors.Is(err, jwt.ErrTokenSignatureInvalid):
-			http.Error(w, "invalid signature", http.StatusUnauthorized)
-		case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
-			http.Error(w, "token expired or not yet valid", http.StatusUnauthorized)
-		default:
-			http.Error(w, "cannot handle this token", http.StatusUnauthorized)
+		if err != nil {
+			switch {
+			case errors.Is(err, jwt.ErrTokenMalformed):
+				http.Error(w, "malformed token", http.StatusUnauthorized)
+			case errors.Is(err, jwt.ErrTokenSignatureInvalid):
+				http.Error(w, "invalid signature", http.StatusUnauthorized)
+			case errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet):
+				http.Error(w, "token expired or not yet valid", http.StatusUnauthorized)
+			default:
+				http.Error(w, "cannot handle this token", http.StatusUnauthorized)
+			}
+			return
+		}
+
+		// token is validated and matches a policy
+		// time to evaluate the requested scopes against the policy
+		allowed := evaluate(*policy, req.Scopes)
+		if !allowed {
+			http.Error(w, "request denied", http.StatusForbidden)
+			return
+		}
+
+		// get an access token from tailscale and return it
+		accessToken, err := getTailscaleToken(r.Context(), req.Scopes)
+		if err != nil {
+			fmt.Printf("failed to get tailscale token: %v\n", err)
+			http.Error(w, "failed to get tailscale token", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(map[string]string{"token": accessToken})
+		if err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
 		}
 	})
 
@@ -117,7 +144,7 @@ func startServer(policies []policy.Policy, decider GateKeeper) error {
 	return srv.ListenAndServe()
 }
 
-func findByIssuer(ctx context.Context, policies []policy.Policy, issuer string) *policy.Policy {
+func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
 	for _, policy := range policies {
 		if slices.Contains(policy.Issuers, issuer) {
 			return &policy
@@ -127,18 +154,18 @@ func findByIssuer(ctx context.Context, policies []policy.Policy, issuer string) 
 	return nil
 }
 
-func findKeyForKID(ctx context.Context, policy policy.Policy, kid string) (*jwkset.JWK, error) {
-	keys, err := policy.Jwks.Storage().KeyReadAll(ctx)
+func getTailscaleToken(ctx context.Context, scopes []string) (string, error) {
+	oauthConfig := clientcredentials.Config{
+		ClientID:     os.Getenv("TAILSCALE_CLIENT_ID"),
+		ClientSecret: os.Getenv("TAILSCALE_CLIENT_SECRET"),
+		TokenURL:     "https://api.tailscale.com/api/v2/oauth/token",
+		Scopes:       scopes,
+	}
+
+	token, err := oauthConfig.Token(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read keys: %w", err)
+		return "", err
 	}
 
-	for _, key := range keys {
-		if key.Marshal().KID == kid {
-			return &key, nil
-		}
-	}
-
-	return nil, nil
-
+	return token.AccessToken, nil
 }

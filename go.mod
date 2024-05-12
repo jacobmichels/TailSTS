@@ -6,6 +6,7 @@ require (
 	github.com/MicahParks/keyfunc/v3 v3.3.2
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/pelletier/go-toml/v2 v2.2.2
+	golang.org/x/oauth2 v0.20.0
 )
 
 require (

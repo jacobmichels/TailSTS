@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,7 +16,7 @@ type Policy struct {
 	Subject       string   `toml:"subject"`
 	JwksURL       string   `toml:"jwks_url"`
 	Jwks          keyfunc.Keyfunc
-	AllowedScopes map[string]string `toml:"allowed_scopes"`
+	AllowedScopes []string `toml:"allowed_scopes"`
 }
 
 func (p *Policy) LoadJwks(ctx context.Context) error {
@@ -24,7 +25,12 @@ func (p *Policy) LoadJwks(ctx context.Context) error {
 		return fmt.Errorf("failed to get JWKS: %w", err)
 	}
 
+	if jwks == nil {
+		return errors.New("failed to get JWKS")
+	}
+
 	p.Jwks = jwks
+
 	return nil
 }
 
