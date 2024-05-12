@@ -86,12 +86,9 @@ func run(c *cli.Context, logger slog.Logger) error {
 
 	logger.Debug("Dependencies initialized, preparing server")
 	port := c.Int("port")
-	err = server.Start(logger, policies, tsClient, port)
-	if err != nil {
-		return fmt.Errorf("failed to run server: %w", err)
-	}
+	server.Start(ctx, logger, policies, tsClient, port)
 
-	logger.Info("Server shutdown without error")
+	logger.Info("Server shutdown")
 
 	return nil
 }

@@ -1,13 +1,17 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
@@ -38,7 +42,7 @@ func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
 	return nil
 }
 
-func Start(logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client, port int) error {
+func Start(ctx context.Context, logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client, port int) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /", func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
@@ -149,5 +153,23 @@ func Start(logger slog.Logger, policies []policy.Policy, tsClient tailscale.Clie
 	logger.Info("Server listening", "addr", addr)
 	srv := http.Server{Addr: addr, Handler: mux}
 
-	return srv.ListenAndServe()
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+
+	go func() {
+		if err := http.ListenAndServe(addr, srv.Handler); err != http.ErrServerClosed {
+			logger.Error("server exited with an error", "error", err)
+		}
+	}()
+
+	<-interrupt
+
+	logger.Debug("interrupt signal received")
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*15)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.Error("error attempting to shutdown server", "error", err)
+	}
 }
