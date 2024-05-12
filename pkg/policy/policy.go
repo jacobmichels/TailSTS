@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/MicahParks/keyfunc/v3"
-	"github.com/pelletier/go-toml/v2"
 )
 
 type Policy struct {
@@ -34,40 +32,24 @@ func (p *Policy) LoadJwks(ctx context.Context) error {
 	return nil
 }
 
-func ReadPoliciesFromDir(dir string) ([]Policy, error) {
-	entries, err := os.ReadDir(dir)
+func GetPolicies(ctx context.Context, dir string) ([]Policy, error) {
+	policies, err := ReadFromDir(dir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read directory: %w", err)
+		return nil, fmt.Errorf("failed to read policies from dir %s: %w", dir, err)
 	}
 
-	var policies []Policy
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-
-		policy, err := readPolicyFromFile(dir + "/" + entry.Name())
+	var loadJWKSErrors error
+	for i := range policies {
+		policy := &policies[i]
+		err := policy.LoadJwks(ctx)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read policy: %w", err)
+			loadJWKSErrors = errors.Join(loadJWKSErrors, fmt.Errorf("failed to load JWKS for policy: %w", err))
 		}
+	}
 
-		policies = append(policies, policy)
+	if loadJWKSErrors != nil {
+		return nil, loadJWKSErrors
 	}
 
 	return policies, nil
-}
-
-func readPolicyFromFile(filename string) (Policy, error) {
-	contents, err := os.ReadFile(filename)
-	if err != nil {
-		return Policy{}, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	var policy Policy
-	err = toml.Unmarshal(contents, &policy)
-	if err != nil {
-		return Policy{}, fmt.Errorf("failed to unmarshal TOML: %w", err)
-	}
-
-	return policy, nil
 }

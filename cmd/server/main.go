@@ -18,29 +18,15 @@ import (
 func main() {
 	ctx := context.Background()
 
-	policies := getPolicies(ctx)
-
-	err := startServer(policies)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func getPolicies(ctx context.Context) []policy.Policy {
-	policies, err := policy.ReadPoliciesFromDir("policies")
+	policies, err := policy.GetPolicies(ctx, "policies")
 	if err != nil {
 		panic(err)
 	}
 
-	for i := range policies {
-		policy := &policies[i]
-		err := policy.LoadJwks(ctx)
-		if err != nil {
-			panic(err)
-		}
+	err = startServer(policies)
+	if err != nil {
+		panic(err)
 	}
-
-	return policies
 }
 
 type Request struct {
