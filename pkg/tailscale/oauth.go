@@ -10,25 +10,13 @@ type Client struct {
 	config clientcredentials.Config
 }
 
-type ClientOption func(*Client)
-
-func WithTokenURL(tokenURL string) ClientOption {
-	return func(c *Client) {
-		c.config.TokenURL = tokenURL
-	}
-}
-
-func NewClient(clientID, clientSecret string, opts ...ClientOption) Client {
+func NewClient(clientID, clientSecret, tokenURL string) Client {
 	c := Client{
 		config: clientcredentials.Config{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
 			TokenURL:     "https://api.tailscale.com/api/v2/oauth/token",
 		},
-	}
-
-	for _, opt := range opts {
-		opt(&c)
 	}
 
 	return c
