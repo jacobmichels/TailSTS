@@ -1,5 +1,5 @@
 # The images specified in this Dockerfile are multi-platform images. Digests point to the index
-FROM rust:1.78.0-slim-bookworm@sha256:517c6272b328bc51c87e099ef4adfbc7ab4558af2d757e8d423c7c3f1cbbf9d5 as builder
+FROM rust:1.78.0-slim-bookworm@sha256:57a59f2a7fbdd03130b1327ec642091f4fcad442e80d876c39d90ee4f56602c3 as builder
 
 WORKDIR /build
 
