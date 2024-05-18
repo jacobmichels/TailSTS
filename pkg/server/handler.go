@@ -12,6 +12,10 @@ import (
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
 )
 
+type Request struct {
+	Scopes []string
+}
+
 func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
