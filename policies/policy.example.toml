@@ -1,5 +1,5 @@
-issuer = ["https://dev-sk666r25.us.auth0.com/"]
+issuer = ["http://localhost:8888"]
 algorithm = "RS256"
-subject = "ZQ0LHZAloXxL51zNSMcQYQe01FLe02HN@clients"
-jwks_url = "https://dev-sk666r25.us.auth0.com/.well-known/jwks.json"
-allowed_scopes = { acls = "write", devices = "read" }
+subject = "test"
+jwks_url = "http://localhost:8888/jwks"
+allowed_scopes = ["acls", "devices:read"]

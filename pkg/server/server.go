@@ -14,10 +14,6 @@ import (
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
 )
 
-type Request struct {
-	Scopes []string
-}
-
 func evaluate(policy policy.Policy, requestedScopes []string) bool {
 	for _, requestedScope := range requestedScopes {
 		if !slices.Contains(policy.AllowedScopes, requestedScope) {
