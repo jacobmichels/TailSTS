@@ -16,8 +16,8 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:  "tail-sts oidc server",
-		Usage: "Generate OIDC tokens for manual testing",
+		Name:  "Mock JWKS Server",
+		Usage: "Generate tokens and serve a JWKS endpoint for testing OIDC flows",
 		Flags: []cli.Flag{
 			&cli.IntFlag{
 				Name:    "port",
