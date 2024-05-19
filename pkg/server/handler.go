@@ -109,7 +109,7 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 
 		logger.Debug("Request allowed, fetching tailscale access token", "requestedScopes", req.Scopes, "allowedScopes", policy.AllowedScopes)
 
-		accessToken, err := tsClient.Token(r.Context(), req.Scopes)
+		accessToken, err := tsClient.FetchAccessToken(r.Context(), req.Scopes)
 		if err != nil {
 			logger.Error("Failed to get tailscale token", "error", err)
 			http.Error(w, "failed to get tailscale token", http.StatusInternalServerError)

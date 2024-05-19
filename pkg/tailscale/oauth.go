@@ -15,14 +15,14 @@ func NewClient(clientID, clientSecret, tokenURL string) Client {
 		config: clientcredentials.Config{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
-			TokenURL:     "https://api.tailscale.com/api/v2/oauth/token",
+			TokenURL:     tokenURL,
 		},
 	}
 
 	return c
 }
 
-func (c *Client) Token(ctx context.Context, scopes []string) (string, error) {
+func (c *Client) FetchAccessToken(ctx context.Context, scopes []string) (string, error) {
 	c.config.Scopes = scopes
 	token, err := c.config.Token(ctx)
 	if err != nil {
