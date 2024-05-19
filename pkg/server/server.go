@@ -14,26 +14,6 @@ import (
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
 )
 
-func evaluate(policy policy.Policy, requestedScopes []string) bool {
-	for _, requestedScope := range requestedScopes {
-		if !slices.Contains(policy.AllowedScopes, requestedScope) {
-			return false
-		}
-	}
-
-	return true
-}
-
-func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
-	for _, policy := range policies {
-		if slices.Contains(policy.Issuers, issuer) {
-			return &policy
-		}
-	}
-
-	return nil
-}
-
 func Start(ctx context.Context, logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client, port int) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, tsClient))
@@ -62,4 +42,24 @@ func Start(ctx context.Context, logger slog.Logger, policies []policy.Policy, ts
 	if err := srv.Shutdown(ctx); err != nil {
 		logger.Error("error attempting to shutdown server", "error", err)
 	}
+}
+
+func evaluate(policy policy.Policy, requestedScopes []string) bool {
+	for _, requestedScope := range requestedScopes {
+		if !slices.Contains(policy.AllowedScopes, requestedScope) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
+	for _, policy := range policies {
+		if slices.Contains(policy.Issuers, issuer) {
+			return &policy
+		}
+	}
+
+	return nil
 }
