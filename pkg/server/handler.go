@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -99,7 +100,7 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 
 		// token is validated and matches a policy
 		// time to evaluate the requested scopes against the policy
-		allowed := evaluate(*policy, req.Scopes)
+		allowed := policy.Satisfied(req.Scopes)
 		if !allowed {
 			logger.Debug("Request denied", "requestedScopes", req.Scopes, "allowedScopes", policy.AllowedScopes)
 			http.Error(w, "request denied", http.StatusForbidden)
@@ -127,4 +128,14 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 
 		logger.Debug("Response sent")
 	}
+}
+
+func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
+	for _, policy := range policies {
+		if slices.Contains(policy.Issuers, issuer) {
+			return &policy
+		}
+	}
+
+	return nil
 }

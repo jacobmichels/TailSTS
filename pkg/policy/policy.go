@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/MicahParks/keyfunc/v3"
 )
@@ -30,6 +31,16 @@ func (p *Policy) LoadJwks(ctx context.Context) error {
 	p.Jwks = jwks
 
 	return nil
+}
+
+func (p Policy) Satisfied(requestedScopes []string) bool {
+	for _, requestedScope := range requestedScopes {
+		if !slices.Contains(p.AllowedScopes, requestedScope) {
+			return false
+		}
+	}
+
+	return true
 }
 
 func GetPolicies(ctx context.Context, dir string) ([]Policy, error) {
