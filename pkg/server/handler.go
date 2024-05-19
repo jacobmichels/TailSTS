@@ -96,7 +96,17 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 			return
 		}
 
-		logger.Debug("Token signature validated, evaluating requested scopes against matched policy")
+		logger.Debug("Token signature validated")
+
+		if policy.Subject == nil {
+			logger.Debug("No subject specified in policy, subject validation disabled")
+		} else if claims.Subject != *policy.Subject {
+			logger.Debug("Subject mismatch", "expected", *policy.Subject, "actual", claims.Subject)
+			http.Error(w, "subject mismatch", http.StatusUnauthorized)
+			return
+		}
+
+		logger.Debug("Subject validated")
 
 		// token is validated and matches a policy
 		// time to evaluate the requested scopes against the policy

@@ -12,7 +12,7 @@ import (
 type Policy struct {
 	Issuers       []string `toml:"issuer"`
 	Algorithm     string   `toml:"algorithm"`
-	Subject       string   `toml:"subject"`
+	Subject       *string  `toml:"subject"`
 	JwksURL       string   `toml:"jwks_url"`
 	Jwks          keyfunc.Keyfunc
 	AllowedScopes []string `toml:"allowed_scopes"`
