@@ -1,0 +1,4 @@
+issuer = ["http://localhost:8888"]
+algorithm = "RS256"
+jwks_url = "http://localhost:8888/.well-known/jwks.json"
+allowed_scopes = ["acls", "devices:read"]
