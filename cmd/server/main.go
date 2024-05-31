@@ -13,7 +13,7 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:  "tail-sts",
+		Name:  "TailSTS",
 		Usage: "Federate Tailscale with OIDC",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
