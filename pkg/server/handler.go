@@ -67,16 +67,7 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 		logger.Debug("Matching policy found", "issuer", claims.Issuer, "allowedScopes", policy.AllowedScopes)
 
 		// use that policy's JWKS to verify the token
-		_, err = jwt.Parse(string(auth[7:]), func(token *jwt.Token) (any, error) {
-			keys, err := policy.Jwks.Storage().KeyReadAll(r.Context())
-			if err != nil {
-				return nil, err
-			}
-
-			logger.Debug("JWKS fetched", "keys", keys)
-
-			return policy.Jwks.Keyfunc(token)
-		}, jwt.WithValidMethods([]string{policy.Algorithm}))
+		_, err = jwt.Parse(string(auth[7:]), policy.Jwks.Keyfunc, jwt.WithValidMethods([]string{policy.Algorithm}))
 
 		if err != nil {
 			switch {
