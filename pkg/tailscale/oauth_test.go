@@ -30,7 +30,7 @@ func TestFetchAccessToken(t *testing.T) {
 	defer srv.Close()
 
 	c := NewClient("test", "test", srv.URL)
-	token, err := c.FetchAccessToken(ctx, scopes)
+	token, err := c.Fetch(ctx, scopes)
 	assert.NoError(t, err)
 	assert.Equal(t, "test", token)
 }

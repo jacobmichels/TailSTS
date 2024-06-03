@@ -17,7 +17,7 @@ type Request struct {
 	Scopes []string
 }
 
-func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client) func(w http.ResponseWriter, r *http.Request) {
+func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
 
@@ -110,7 +110,7 @@ func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, tsClient 
 
 		logger.Debug("Request allowed, fetching tailscale access token", "requestedScopes", req.Scopes, "allowedScopes", policy.AllowedScopes)
 
-		accessToken, err := tsClient.FetchAccessToken(r.Context(), req.Scopes)
+		accessToken, err := ts.Fetch(r.Context(), req.Scopes)
 		if err != nil {
 			logger.Error("Failed to get tailscale token", "error", err)
 			http.Error(w, "failed to get tailscale token", http.StatusInternalServerError)

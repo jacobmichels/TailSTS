@@ -13,9 +13,9 @@ import (
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
 )
 
-func Start(ctx context.Context, logger slog.Logger, policies []policy.Policy, tsClient tailscale.Client, port int) {
+func Start(ctx context.Context, logger slog.Logger, policies []policy.Policy, ts tailscale.AccessTokenFetcher, port int) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, tsClient))
+	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, ts))
 
 	addr := fmt.Sprintf(":%d", port)
 
