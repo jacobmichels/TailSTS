@@ -6,18 +6,14 @@ import (
 	"golang.org/x/oauth2/clientcredentials"
 )
 
-type AccessTokenFetcher interface {
-	Fetch(ctx context.Context, scopes []string) (string, error)
-}
-
-type OauthFetcher struct {
+type OAuthFetcher struct {
 	config clientcredentials.Config
 }
 
-var _ AccessTokenFetcher = (*OauthFetcher)(nil)
+var _ AccessTokenFetcher = (*OAuthFetcher)(nil)
 
-func NewClient(clientID, clientSecret, tokenURL string) *OauthFetcher {
-	return &OauthFetcher{
+func NewOAuthFetcher(clientID, clientSecret, tokenURL string) *OAuthFetcher {
+	return &OAuthFetcher{
 		config: clientcredentials.Config{
 			ClientID:     clientID,
 			ClientSecret: clientSecret,
@@ -26,7 +22,7 @@ func NewClient(clientID, clientSecret, tokenURL string) *OauthFetcher {
 	}
 }
 
-func (c *OauthFetcher) Fetch(ctx context.Context, scopes []string) (string, error) {
+func (c *OAuthFetcher) Fetch(ctx context.Context, scopes []string) (string, error) {
 	c.config.Scopes = scopes
 	token, err := c.config.Token(ctx)
 	if err != nil {

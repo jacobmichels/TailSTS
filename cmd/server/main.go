@@ -82,7 +82,7 @@ func run(c *cli.Context, logger slog.Logger) error {
 	}
 	logger.Debug("Policies loaded", "count", len(policies))
 
-	tsClient := tailscale.NewClient(c.String("ts-client-id"), c.String("ts-client-secret"), c.String("ts-token-url"))
+	tsClient := tailscale.NewOAuthFetcher(c.String("ts-client-id"), c.String("ts-client-secret"), c.String("ts-token-url"))
 
 	logger.Debug("Dependencies initialized, preparing server")
 	port := c.Int("port")
