@@ -62,7 +62,7 @@ func main() {
 				}))
 			}
 
-			return run(c, *logger)
+			return run(c, logger)
 		},
 	}
 
@@ -71,7 +71,7 @@ func main() {
 	}
 }
 
-func run(c *cli.Context, logger slog.Logger) error {
+func run(c *cli.Context, logger *slog.Logger) error {
 	ctx := c.Context
 	logger.Info("TailSTS warming up")
 

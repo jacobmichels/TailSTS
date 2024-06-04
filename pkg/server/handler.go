@@ -17,7 +17,7 @@ type Request struct {
 	Scopes []string
 }
 
-func tokenRequestHandler(logger slog.Logger, policies []policy.Policy, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
+func tokenRequestHandler(logger *slog.Logger, policies []policy.Policy, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
 

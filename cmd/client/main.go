@@ -43,7 +43,7 @@ func main() {
 				Level: slog.LevelDebug,
 			}))
 
-			return run(c, *logger)
+			return run(c, logger)
 		},
 	}
 
@@ -56,7 +56,7 @@ type Response struct {
 	AccessToken string `json:"token"`
 }
 
-func run(c *cli.Context, logger slog.Logger) error {
+func run(c *cli.Context, logger *slog.Logger) error {
 	logger.Info("Running TailSTS Client")
 
 	server := c.String("server")

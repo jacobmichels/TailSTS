@@ -16,7 +16,7 @@ type JWKSResponse struct {
 	Keys []jwkset.JWKMarshal `json:"keys"`
 }
 
-func StartTestingServer(logger slog.Logger, port int, issuer, subject string) (string, error) {
+func StartTestingServer(logger *slog.Logger, port int, issuer, subject string) (string, error) {
 	// generate an RSA keypair
 	secret, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
