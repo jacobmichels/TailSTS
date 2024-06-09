@@ -7,13 +7,13 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-func ReadFromDir(dir string) ([]Policy, error) {
+func ReadFromDir(dir string) (PolicyList, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read directory: %w", err)
 	}
 
-	var policies []Policy
+	var policies PolicyList
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue

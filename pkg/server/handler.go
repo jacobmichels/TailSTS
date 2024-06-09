@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -17,7 +16,7 @@ type Request struct {
 	Scopes []string
 }
 
-func tokenRequestHandler(logger *slog.Logger, policies []policy.Policy, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
+func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
 
@@ -57,7 +56,7 @@ func tokenRequestHandler(logger *slog.Logger, policies []policy.Policy, ts tails
 		}
 
 		// find the policy that matches the token's issuer
-		policy := findByIssuer(policies, claims.Issuer)
+		policy := policies.FindByIssuer(claims.Issuer)
 		if policy == nil {
 			logger.Debug("No matching policy", "issuer", claims.Issuer)
 			http.Error(w, "no matching policy", http.StatusUnauthorized)
@@ -129,14 +128,4 @@ func tokenRequestHandler(logger *slog.Logger, policies []policy.Policy, ts tails
 
 		logger.Debug("Response sent")
 	}
-}
-
-func findByIssuer(policies []policy.Policy, issuer string) *policy.Policy {
-	for _, policy := range policies {
-		if slices.Contains(policy.Issuers, issuer) {
-			return &policy
-		}
-	}
-
-	return nil
 }

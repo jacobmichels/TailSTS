@@ -18,6 +18,8 @@ type Policy struct {
 	AllowedScopes []string `toml:"allowed_scopes"`
 }
 
+type PolicyList []Policy
+
 func (p *Policy) LoadJwks(ctx context.Context) error {
 	jwks, err := keyfunc.NewDefaultCtx(ctx, []string{p.JwksURL})
 	if err != nil {
@@ -43,7 +45,7 @@ func (p Policy) Satisfied(requestedScopes []string) bool {
 	return true
 }
 
-func GetPolicies(ctx context.Context, dir string) ([]Policy, error) {
+func GetPolicies(ctx context.Context, dir string) (PolicyList, error) {
 	policies, err := ReadFromDir(dir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read policies from dir %s: %w", dir, err)
@@ -63,4 +65,14 @@ func GetPolicies(ctx context.Context, dir string) ([]Policy, error) {
 	}
 
 	return policies, nil
+}
+
+func (p PolicyList) FindByIssuer(issuer string) *Policy {
+	for _, policy := range p {
+		if slices.Contains(policy.Issuers, issuer) {
+			return &policy
+		}
+	}
+
+	return nil
 }
