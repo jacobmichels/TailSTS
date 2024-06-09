@@ -8,6 +8,7 @@ import (
 	"github.com/jacobmichels/tail-sts/pkg/policy"
 	"github.com/jacobmichels/tail-sts/pkg/server"
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
+	"github.com/jacobmichels/tail-sts/pkg/verifier"
 	"github.com/urfave/cli/v2"
 )
 
@@ -83,10 +84,11 @@ func run(c *cli.Context, logger *slog.Logger) error {
 	logger.Debug("Policies loaded", "count", len(policies))
 
 	tsClient := tailscale.NewOAuthFetcher(c.String("ts-client-id"), c.String("ts-client-secret"), c.String("ts-token-url"))
+	verif := verifier.JWKSVerifier{}
 
 	logger.Debug("Dependencies initialized, preparing server")
 	port := c.Int("port")
-	server.Start(ctx, logger, policies, tsClient, port)
+	server.Start(ctx, logger, policies, tsClient, verif, port)
 
 	logger.Info("Server shutdown")
 

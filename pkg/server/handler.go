@@ -10,13 +10,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
+	"github.com/jacobmichels/tail-sts/pkg/verifier"
 )
 
 type Request struct {
 	Scopes []string
 }
 
-func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher) func(w http.ResponseWriter, r *http.Request) {
+type Response struct {
+	Token string `json:"token"`
+}
+
+func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
 
@@ -44,6 +49,12 @@ func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tai
 
 		logger.Debug("Request decoded", "scopes", req.Scopes)
 
+		if len(req.Scopes) == 0 {
+			logger.Debug("Request missing scopes")
+			http.Error(w, "missing scopes", http.StatusBadRequest)
+			return
+		}
+
 		// parse the token without validating it
 		// this is needed to read the issuer in order to find a matching policy
 		parser := jwt.NewParser()
@@ -66,8 +77,7 @@ func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tai
 		logger.Debug("Matching policy found", "issuer", claims.Issuer, "allowedScopes", policy.AllowedScopes)
 
 		// use that policy's JWKS to verify the token
-		_, err = jwt.Parse(string(auth[7:]), policy.Jwks.Keyfunc, jwt.WithValidMethods([]string{policy.Algorithm}))
-
+		err = verif.Verify(string(auth[7:]), policy.Algorithm, policy.Jwks)
 		if err != nil {
 			switch {
 			case errors.Is(err, jwt.ErrTokenMalformed):
@@ -119,7 +129,7 @@ func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tai
 		logger.Debug("Access token acquired")
 
 		w.Header().Set("Content-Type", "application/json")
-		err = json.NewEncoder(w).Encode(map[string]string{"token": accessToken})
+		err = json.NewEncoder(w).Encode(Response{Token: accessToken})
 		if err != nil {
 			logger.Error("Failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)

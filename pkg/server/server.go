@@ -11,11 +11,12 @@ import (
 
 	"github.com/jacobmichels/tail-sts/pkg/policy"
 	"github.com/jacobmichels/tail-sts/pkg/tailscale"
+	"github.com/jacobmichels/tail-sts/pkg/verifier"
 )
 
-func Start(ctx context.Context, logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, port int) {
+func Start(ctx context.Context, logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier, port int) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, ts))
+	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, ts, verif))
 
 	addr := fmt.Sprintf(":%d", port)
 
