@@ -102,7 +102,7 @@ func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tai
 			logger.Debug("No subject specified in policy, allowing any subject")
 		} else if claims.Subject != *policy.Subject {
 			logger.Debug("Subject mismatch", "expected", *policy.Subject, "actual", claims.Subject)
-			http.Error(w, "subject mismatch", http.StatusUnauthorized)
+			http.Error(w, "subject mismatch", http.StatusForbidden)
 			return
 		}
 
