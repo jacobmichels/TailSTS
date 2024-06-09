@@ -46,8 +46,7 @@ func TestTokenRequestHandler(t *testing.T) {
 	ts := &StaticFetcher{token: fakeAccessToken}
 
 	cases := map[string]struct {
-		tokenIssuer          string
-		tokenSubject         string
+		token                string
 		requestedScopes      []string
 		expectedStatus       int
 		expectedErrorMessage string
@@ -60,7 +59,7 @@ func TestTokenRequestHandler(t *testing.T) {
 				"scope2",
 			},
 			expectedStatus: 200,
-			tokenSubject:   defaultSubject,
+			token:          generateToken(t, defaultIssuer, defaultSubject),
 			policies: policy.PolicyList{
 				{
 					Issuers:       []string{"https://example.com"},
@@ -74,6 +73,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			requestedScopes: []string{
 				"scope1",
 			},
+			token:          generateToken(t, defaultIssuer, defaultSubject),
 			expectedStatus: 200,
 			policies: policy.PolicyList{
 				{
@@ -94,6 +94,7 @@ func TestTokenRequestHandler(t *testing.T) {
 				"scope2",
 				"scope3",
 			},
+			token:          generateToken(t, defaultIssuer, defaultSubject),
 			expectedStatus: 403,
 			policies: policy.PolicyList{
 				{
@@ -104,10 +105,47 @@ func TestTokenRequestHandler(t *testing.T) {
 			expectedErrorMessage: "request denied",
 			verif:                &StaticVerifier{err: nil},
 		},
-		// "mismatched subject":{
-
-		// }
-
+		"mismatched subject": {
+			requestedScopes: []string{
+				"scope1",
+				"scope2",
+			},
+			token:          generateToken(t, defaultIssuer, "wrong-subject"),
+			expectedStatus: 403,
+			policies: policy.PolicyList{
+				{
+					Issuers:       []string{"https://example.com"},
+					AllowedScopes: []string{"scope1", "scope2"},
+					Subject:       &defaultSubject,
+				},
+			},
+			expectedErrorMessage: "subject mismatch",
+			verif:                &StaticVerifier{err: nil},
+		},
+		"no matching policy": {
+			requestedScopes: []string{
+				"scope1",
+				"scope2",
+			},
+			expectedStatus:       401,
+			expectedErrorMessage: "no matching policy",
+			policies:             policy.PolicyList{},
+		},
+		"invalid token": {
+			requestedScopes: []string{
+				"scope1",
+				"scope2",
+			},
+			expectedStatus:       401,
+			expectedErrorMessage: "invalid token",
+			policies: policy.PolicyList{
+				{
+					Issuers:       []string{"https://example.com"},
+					AllowedScopes: []string{"scope1", "scope2"},
+				},
+			},
+			verif: &StaticVerifier{err: jwt.ErrTokenMalformed},
+		},
 	}
 
 	for name, tc := range cases {
@@ -122,8 +160,7 @@ func TestTokenRequestHandler(t *testing.T) {
 
 			req := httptest.NewRequest("POST", "/", &body)
 
-			token := generateToken(t, tc.tokenIssuer, tc.tokenSubject)
-			req.Header.Set("Authorization", "Bearer "+token)
+			req.Header.Set("Authorization", "Bearer "+tc.token)
 
 			w := httptest.NewRecorder()
 			handler(w, req)
@@ -153,14 +190,6 @@ func TestTokenRequestHandler(t *testing.T) {
 
 func generateToken(t *testing.T, issuer, sub string) string {
 	t.Helper()
-
-	if issuer == "" {
-		issuer = defaultIssuer
-	}
-
-	if sub == "" {
-		sub = defaultSubject
-	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss": issuer,
