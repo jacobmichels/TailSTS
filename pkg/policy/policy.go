@@ -36,6 +36,10 @@ func (p *Policy) LoadJwks(ctx context.Context) error {
 }
 
 func (p Policy) Satisfied(requestedScopes []string) bool {
+	if len(requestedScopes) == 0 {
+		return false
+	}
+
 	for _, requestedScope := range requestedScopes {
 		if !slices.Contains(p.AllowedScopes, requestedScope) {
 			return false

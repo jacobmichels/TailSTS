@@ -5,39 +5,45 @@ import (
 )
 
 func TestSatisfied(t *testing.T) {
-	p := Policy{
+	defaultPolicy := Policy{
 		AllowedScopes: []string{"devices:read", "acls"},
 	}
 
-	tests := map[string]struct {
+	cases := map[string]struct {
+		policy          Policy
 		requestedScopes []string
-		expected        bool
+		policySatisfied bool
 	}{
-		"empty requested scopes": {
+		"policies are not satisfied by empty requested scopes": {
+			policy:          defaultPolicy,
 			requestedScopes: []string{},
-			expected:        true,
+			policySatisfied: false,
 		},
-		"single requested scope": {
+		"requesting one of the allowed scopes satisfies the policy": {
+			policy:          defaultPolicy,
 			requestedScopes: []string{"devices:read"},
-			expected:        true,
+			policySatisfied: true,
 		},
-		"multiple requested scopes": {
+		"requesting all of the allowed scopes satisfies the policy": {
+			policy:          defaultPolicy,
 			requestedScopes: []string{"devices:read", "acls"},
-			expected:        true,
+			policySatisfied: true,
 		},
-		"missing requested scope": {
-			requestedScopes: []string{"devices:read", "acls", "users:read"},
-			expected:        false,
-		},
-		"no allowed scopes": {
+		"requesting a scope not allowed by the policy": {
+			policy:          defaultPolicy,
 			requestedScopes: []string{"users:read", "among:us"},
-			expected:        false,
+			policySatisfied: false,
+		},
+		"requesting multiple scopes, with one being not allowed by the policy": {
+			policy:          defaultPolicy,
+			requestedScopes: []string{"devices:read", "acls", "users:read"},
+			policySatisfied: false,
 		},
 	}
 
-	for name, test := range tests {
+	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			if got, want := p.Satisfied(test.requestedScopes), test.expected; got != want {
+			if got, want := tc.policy.Satisfied(tc.requestedScopes), tc.policySatisfied; got != want {
 				t.Errorf("got %v, want %v", got, want)
 			}
 		})
