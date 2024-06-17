@@ -150,7 +150,7 @@ func TestTokenRequestHandler(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			handler := tokenRequestHandler(log, tc.policies, ts, tc.verif)
+			handler := NewTokenRequestHandler(log, tc.policies, ts, tc.verif)
 
 			var body bytes.Buffer
 			err := json.NewEncoder(&body).Encode(Request{Scopes: tc.requestedScopes})
@@ -163,7 +163,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			req.Header.Set("Authorization", "Bearer "+tc.token)
 
 			w := httptest.NewRecorder()
-			handler(w, req)
+			handler.ServeHTTP(w, req)
 
 			if w.Code != tc.expectedStatus {
 				t.Errorf("expected status %d, got %d. error message: %s", tc.expectedStatus, w.Code, w.Body.String())

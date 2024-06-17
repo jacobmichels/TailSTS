@@ -8,32 +8,23 @@ import (
 	"os"
 	"os/signal"
 	"time"
-
-	"github.com/jacobmichels/tail-sts/pkg/policy"
-	"github.com/jacobmichels/tail-sts/pkg/tailscale"
-	"github.com/jacobmichels/tail-sts/pkg/verifier"
 )
 
-func Start(ctx context.Context, logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier, port int) {
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /", tokenRequestHandler(logger, policies, ts, verif))
-
+func StartServer(ctx context.Context, logger *slog.Logger, handler http.Handler, port int) {
 	addr := fmt.Sprintf(":%d", port)
-
-	logger.Info("Server listening", "addr", addr)
-	srv := http.Server{Addr: addr, Handler: mux}
+	srv := &http.Server{Addr: addr, Handler: handler}
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 
 	go func() {
-		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		logger.Info("Server listening", "addr", addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Error("server exited with an error", "error", err)
 		}
 	}()
 
 	<-interrupt
-
 	logger.Debug("interrupt signal received")
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*15)

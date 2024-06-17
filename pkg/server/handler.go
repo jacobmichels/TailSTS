@@ -21,8 +21,10 @@ type Response struct {
 	Token string `json:"token"`
 }
 
-func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier) http.Handler {
+	mux := http.NewServeMux()
+
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		logger.Debug("Request received")
 
 		// perform basic validation of the format of the request
@@ -138,4 +140,7 @@ func tokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tai
 
 		logger.Debug("Response sent")
 	}
+
+	mux.HandleFunc("POST /", handler)
+	return mux
 }

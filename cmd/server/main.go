@@ -88,7 +88,9 @@ func run(c *cli.Context, logger *slog.Logger) error {
 
 	logger.Debug("Dependencies initialized, preparing server")
 	port := c.Int("port")
-	server.Start(ctx, logger, policies, tsClient, verif, port)
+
+	handler := server.NewTokenRequestHandler(logger, policies, tsClient, verif)
+	server.StartServer(ctx, logger, handler, port)
 
 	logger.Info("Server shutdown")
 
