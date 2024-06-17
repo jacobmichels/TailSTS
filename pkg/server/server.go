@@ -27,7 +27,7 @@ func Start(ctx context.Context, logger *slog.Logger, policies policy.PolicyList,
 	signal.Notify(interrupt, os.Interrupt)
 
 	go func() {
-		if err := http.ListenAndServe(addr, srv.Handler); err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			logger.Error("server exited with an error", "error", err)
 		}
 	}()
