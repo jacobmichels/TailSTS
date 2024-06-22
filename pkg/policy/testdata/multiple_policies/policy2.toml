@@ -1,5 +1,5 @@
-issuer = "http://localhost:8888"
+issuer = "http://localhost:8080"
 algorithm = "RS256"
 subject = "test"
 jwks_url = "http://localhost:8888/jwks"
-allowed_scopes = ["acls", "devices:read"]
+allowed_scopes = ["routes", "logs:read"]

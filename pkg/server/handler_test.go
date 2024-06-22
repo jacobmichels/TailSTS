@@ -12,25 +12,25 @@ import (
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
-	"github.com/jacobmichels/tail-sts/pkg/tailscale"
-	"github.com/jacobmichels/tail-sts/pkg/verifier"
 )
 
+// An AccessTokenFetcher that always returns the same token
 type StaticFetcher struct {
 	token string
 }
 
-var _ tailscale.AccessTokenFetcher = (*StaticFetcher)(nil)
+var _ AccessTokenFetcher = (*StaticFetcher)(nil)
 
 func (s *StaticFetcher) Fetch(ctx context.Context, scopes []string) (string, error) {
 	return s.token, nil
 }
 
+// An OIDCTokenVerifier that always returns its wrapped error
 type StaticVerifier struct {
 	err error
 }
 
-var _ verifier.Verifier = (*StaticVerifier)(nil)
+var _ OIDCTokenVerifier = (*StaticVerifier)(nil)
 
 func (s *StaticVerifier) Verify(token, alg string, kf keyfunc.Keyfunc) error {
 	return s.err
@@ -51,7 +51,7 @@ func TestTokenRequestHandler(t *testing.T) {
 		expectedStatus       int
 		expectedErrorMessage string
 		policies             policy.PolicyList
-		verif                verifier.Verifier
+		verif                OIDCTokenVerifier
 	}{
 		"requested scopes = allowed scopes, matching subject": {
 			requestedScopes: []string{
@@ -62,7 +62,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			token:          generateToken(t, defaultIssuer, defaultSubject),
 			policies: policy.PolicyList{
 				{
-					Issuers:       []string{"https://example.com"},
+					Issuer:        "https://example.com",
 					AllowedScopes: []string{"scope1", "scope2"},
 					Subject:       &defaultSubject,
 				},
@@ -77,7 +77,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			expectedStatus: 200,
 			policies: policy.PolicyList{
 				{
-					Issuers:       []string{"https://example.com"},
+					Issuer:        "https://example.com",
 					AllowedScopes: []string{"scope1", "scope2"},
 				},
 			},
@@ -98,7 +98,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			expectedStatus: 403,
 			policies: policy.PolicyList{
 				{
-					Issuers:       []string{"https://example.com"},
+					Issuer:        "https://example.com",
 					AllowedScopes: []string{"scope1", "scope2"},
 				},
 			},
@@ -114,7 +114,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			expectedStatus: 403,
 			policies: policy.PolicyList{
 				{
-					Issuers:       []string{"https://example.com"},
+					Issuer:        "https://example.com",
 					AllowedScopes: []string{"scope1", "scope2"},
 					Subject:       &defaultSubject,
 				},
@@ -140,7 +140,7 @@ func TestTokenRequestHandler(t *testing.T) {
 			expectedErrorMessage: "invalid token",
 			policies: policy.PolicyList{
 				{
-					Issuers:       []string{"https://example.com"},
+					Issuer:        "https://example.com",
 					AllowedScopes: []string{"scope1", "scope2"},
 				},
 			},

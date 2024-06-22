@@ -10,10 +10,10 @@ import (
 )
 
 type Policy struct {
-	Issuers       []string `toml:"issuer"`
-	Algorithm     string   `toml:"algorithm"`
-	Subject       *string  `toml:"subject"`
-	JwksURL       string   `toml:"jwks_url"`
+	Issuer        string  `toml:"issuer"`
+	Algorithm     string  `toml:"algorithm"`
+	Subject       *string `toml:"subject"`
+	JwksURL       string  `toml:"jwks_url"`
 	Jwks          keyfunc.Keyfunc
 	AllowedScopes []string `toml:"allowed_scopes"`
 }
@@ -49,6 +49,7 @@ func (p Policy) Satisfied(requestedScopes []string) bool {
 	return true
 }
 
+// TODO: refactor this function to accept a policyReader. add tests.
 func GetPolicies(ctx context.Context, dir string) (PolicyList, error) {
 	policies, err := ReadFromDir(dir)
 	if err != nil {
@@ -73,7 +74,7 @@ func GetPolicies(ctx context.Context, dir string) (PolicyList, error) {
 
 func (p PolicyList) FindByIssuer(issuer string) *Policy {
 	for _, policy := range p {
-		if slices.Contains(policy.Issuers, issuer) {
+		if policy.Issuer == issuer {
 			return &policy
 		}
 	}

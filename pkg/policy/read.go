@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 
@@ -27,6 +28,10 @@ func ReadFromDir(dir string) (PolicyList, error) {
 		policies = append(policies, policy)
 	}
 
+	if len(policies) == 0 {
+		return nil, fmt.Errorf("no policies found in directory %s", dir)
+	}
+
 	return policies, nil
 }
 
@@ -37,10 +42,12 @@ func readFromFile(filename string) (Policy, error) {
 	}
 
 	var policy Policy
-	err = toml.Unmarshal(contents, &policy)
+	err = toml.NewDecoder(bytes.NewReader(contents)).DisallowUnknownFields().Decode(&policy)
 	if err != nil {
 		return Policy{}, fmt.Errorf("failed to unmarshal TOML: %w", err)
 	}
+
+	// TODO: perform validation here?
 
 	return policy, nil
 }

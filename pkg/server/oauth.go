@@ -1,4 +1,4 @@
-package tailscale
+package server
 
 import (
 	"context"

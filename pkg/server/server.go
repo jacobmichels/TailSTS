@@ -8,7 +8,17 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/MicahParks/keyfunc/v3"
 )
+
+type AccessTokenFetcher interface {
+	Fetch(ctx context.Context, scopes []string) (string, error)
+}
+
+type OIDCTokenVerifier interface {
+	Verify(token, alg string, kf keyfunc.Keyfunc) error
+}
 
 func StartServer(ctx context.Context, logger *slog.Logger, handler http.Handler, port int) {
 	addr := fmt.Sprintf(":%d", port)

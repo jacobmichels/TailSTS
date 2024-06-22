@@ -1,4 +1,4 @@
-package verifier
+package server
 
 import (
 	"github.com/MicahParks/keyfunc/v3"
@@ -7,7 +7,7 @@ import (
 
 type JWKSVerifier struct{}
 
-var _ Verifier = (*JWKSVerifier)(nil)
+var _ OIDCTokenVerifier = (*JWKSVerifier)(nil)
 
 func (v JWKSVerifier) Verify(token, alg string, kf keyfunc.Keyfunc) error {
 	_, err := jwt.Parse(string(token), kf.Keyfunc, jwt.WithValidMethods([]string{alg}))

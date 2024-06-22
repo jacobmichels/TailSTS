@@ -1,0 +1,4 @@
+issuer = "http://localhost:123"
+algorithm = "RS256"
+jwks_url = "http://localhost:123/jwks.json"
+allowed_scopes = ["all"]

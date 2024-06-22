@@ -1,4 +1,4 @@
-issuer = ["http://localhost:8888"]
+issuer = ["http://localhost:8080", "http://localhost:8081"]
 algorithm = "RS256"
 subject = "test"
 jwks_url = "http://localhost:8888/jwks"

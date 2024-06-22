@@ -9,8 +9,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
-	"github.com/jacobmichels/tail-sts/pkg/tailscale"
-	"github.com/jacobmichels/tail-sts/pkg/verifier"
 )
 
 type Request struct {
@@ -21,7 +19,7 @@ type Response struct {
 	Token string `json:"token"`
 }
 
-func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts tailscale.AccessTokenFetcher, verif verifier.Verifier) http.Handler {
+func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts AccessTokenFetcher, verif OIDCTokenVerifier) http.Handler {
 	mux := http.NewServeMux()
 
 	handler := func(w http.ResponseWriter, r *http.Request) {
