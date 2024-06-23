@@ -23,6 +23,7 @@ func TestTailstsIntegration(t *testing.T) {
 	logger := testLogger(t)
 	kid := "test"
 	subject := "anakin"
+	accessToken := "ts-access-token"
 
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
@@ -34,23 +35,42 @@ func TestTailstsIntegration(t *testing.T) {
 
 	policies := testPolicies(t, issuerURL, localJWKSUrl, subject)
 
-	staticFetcher := &testutils.StaticFetcher{AccessToken: "ts-access-token"}
+	staticFetcher := &testutils.StaticFetcher{AccessToken: accessToken}
 	verif := server.JWKSVerifier{}
 	handler := server.NewTokenRequestHandler(logger, policies, staticFetcher, verif)
 
-	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"scopes":["devices:read", "acls"]}`))
-	req.Header.Add("Authorization", "Bearer "+token)
+	cases := map[string]struct {
+		scopesJson         string
+		expectedStatusCode int
+	}{
+		"allowed scopes": {
+			scopesJson:         `{"scopes":["devices:read", "acls"]}`,
+			expectedStatusCode: http.StatusOK,
+		},
+		"missing scope": {
+			scopesJson:         `{"scopes":["all"]}`,
+			expectedStatusCode: http.StatusForbidden,
+		},
+	}
 
-	recorder := httptest.NewRecorder()
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.scopesJson))
+			req.Header.Add("Authorization", "Bearer "+token)
 
-	handler.ServeHTTP(recorder, req)
+			recorder := httptest.NewRecorder()
 
-	var deserializedResponse server.Response
-	err = json.NewDecoder(recorder.Body).Decode(&deserializedResponse)
-	require.NoError(t, err)
+			handler.ServeHTTP(recorder, req)
+			require.Equal(t, recorder.Result().StatusCode, tc.expectedStatusCode)
 
-	require.Equal(t, recorder.Result().StatusCode, http.StatusOK)
-	require.Equal(t, deserializedResponse.Token, "ts-access-token")
+			if tc.expectedStatusCode == http.StatusOK {
+				var deserializedResponse server.Response
+				err = json.NewDecoder(recorder.Body).Decode(&deserializedResponse)
+				require.NoError(t, err)
+				require.Equal(t, deserializedResponse.Token, accessToken)
+			}
+		})
+	}
 }
 
 func spawnJwksServer(t *testing.T, logger *slog.Logger, key *rsa.PrivateKey, kid string) (string, string) {
