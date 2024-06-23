@@ -1,6 +1,7 @@
 package policy
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,6 +84,8 @@ func TestReadFromDir(t *testing.T) {
 
 	assert := assert.New(t)
 	require := require.New(t)
+	err := os.MkdirAll("testdata/empty", 0755)
+	require.NoError(err)
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			policies, err := ReadFromDir(tc.dir)
