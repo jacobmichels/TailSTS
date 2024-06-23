@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"log/slog"
@@ -12,18 +11,10 @@ import (
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jacobmichels/tail-sts/pkg/policy"
+	"github.com/jacobmichels/tail-sts/pkg/testutils"
 )
 
-// An AccessTokenFetcher that always returns the same token
-type StaticFetcher struct {
-	token string
-}
-
-var _ AccessTokenFetcher = (*StaticFetcher)(nil)
-
-func (s *StaticFetcher) Fetch(ctx context.Context, scopes []string) (string, error) {
-	return s.token, nil
-}
+var _ AccessTokenFetcher = (*testutils.StaticFetcher)(nil)
 
 // An OIDCTokenVerifier that always returns its wrapped error
 type StaticVerifier struct {
@@ -43,7 +34,7 @@ const fakeAccessToken = "mock-access-token"
 
 func TestTokenRequestHandler(t *testing.T) {
 	log := slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{}))
-	ts := &StaticFetcher{token: fakeAccessToken}
+	ts := &testutils.StaticFetcher{AccessToken: fakeAccessToken}
 
 	cases := map[string]struct {
 		token                string
