@@ -88,7 +88,7 @@ func run(c *cli.Context, logger *slog.Logger) error {
 	port := c.Int("port")
 
 	handler := server.NewTokenRequestHandler(logger, policies, tsClient, verif)
-	server.StartServer(ctx, logger, handler, port)
+	server.Start(ctx, logger, handler, port)
 
 	logger.Info("Server shutdown")
 

@@ -20,7 +20,7 @@ type OIDCTokenVerifier interface {
 	Verify(token, alg string, kf keyfunc.Keyfunc) error
 }
 
-func StartServer(ctx context.Context, logger *slog.Logger, handler http.Handler, port int) {
+func Start(ctx context.Context, logger *slog.Logger, handler http.Handler, port int) {
 	addr := fmt.Sprintf(":%d", port)
 	srv := &http.Server{Addr: addr, Handler: handler}
 
