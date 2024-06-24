@@ -1,10 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":automergeStableNonMajor",
-    "schedule:daily"
-  ],
+  "extends": ["config:best-practices", ":automergeAll", "schedule:daily"],
   "postUpdateOptions": ["gomodTidy", "gomodUpdateImportPaths"],
   "assignees": ["@jacobmichels"],
   "reviewers": ["@jacobmichels"]
