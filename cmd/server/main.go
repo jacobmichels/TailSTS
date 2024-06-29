@@ -81,6 +81,11 @@ func run(c *cli.Context, logger *slog.Logger) error {
 	}
 	logger.Debug("Policies loaded", "count", len(policies))
 
+	err = policy.ValidatePolicies(policies)
+	if err != nil {
+		return fmt.Errorf("failed to validate policies: %w", err)
+	}
+
 	tsClient := server.NewOAuthFetcher(c.String("ts-client-id"), c.String("ts-client-secret"), c.String("ts-token-url"))
 	verif := server.JWKSVerifier{}
 
