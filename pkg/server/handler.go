@@ -128,6 +128,7 @@ func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts 
 
 		logger.Debug("Access token acquired")
 
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		_, err = w.Write([]byte(accessToken))
 		if err != nil {
 			logger.Error("Failed to send response", "error", err)
