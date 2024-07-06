@@ -161,18 +161,14 @@ func TestTokenRequestHandler(t *testing.T) {
 			}
 
 			if w.Code == 200 {
-				var resp Response
-				err := json.NewDecoder(w.Body).Decode(&resp)
-				if err != nil {
-					t.Fatalf("failed to decode response: %v", err)
-				}
+				token := w.Body.String()
 
-				if resp.Token == "" {
+				if token == "" {
 					t.Error("expected non-empty token in response")
 				}
 
-				if resp.Token != fakeAccessToken {
-					t.Errorf("expected token %q, got %q", fakeAccessToken, resp.Token)
+				if token != fakeAccessToken {
+					t.Errorf("expected token %q, got %q", fakeAccessToken, token)
 				}
 			}
 		})

@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/rsa"
-	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -55,19 +54,19 @@ func TestTailstsIntegration(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
+			require := require.New(t)
 			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.scopesJson))
 			req.Header.Add("Authorization", "Bearer "+token)
 
 			recorder := httptest.NewRecorder()
 
 			handler.ServeHTTP(recorder, req)
-			require.Equal(t, recorder.Result().StatusCode, tc.expectedStatusCode)
+			require.Equal(recorder.Result().StatusCode, tc.expectedStatusCode)
 
 			if tc.expectedStatusCode == http.StatusOK {
-				var deserializedResponse server.Response
-				err = json.NewDecoder(recorder.Body).Decode(&deserializedResponse)
-				require.NoError(t, err)
-				require.Equal(t, deserializedResponse.Token, accessToken)
+				token := recorder.Body.String()
+				require.NotNil(token)
+				require.Equal(token, accessToken)
 			}
 		})
 	}

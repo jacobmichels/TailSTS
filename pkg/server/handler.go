@@ -128,11 +128,9 @@ func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts 
 
 		logger.Debug("Access token acquired")
 
-		w.Header().Set("Content-Type", "application/json")
-		err = json.NewEncoder(w).Encode(Response{Token: accessToken})
+		_, err = w.Write([]byte(accessToken))
 		if err != nil {
-			logger.Error("Failed to encode response", "error", err)
-			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			logger.Error("Failed to send response", "error", err)
 			return
 		}
 
