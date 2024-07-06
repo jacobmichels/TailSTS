@@ -15,10 +15,6 @@ type Request struct {
 	Scopes []string
 }
 
-type Response struct {
-	Token string `json:"token"`
-}
-
 func NewTokenRequestHandler(logger *slog.Logger, policies policy.PolicyList, ts AccessTokenFetcher, verif OIDCTokenVerifier) http.Handler {
 	mux := http.NewServeMux()
 
