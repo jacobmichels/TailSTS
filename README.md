@@ -4,6 +4,8 @@ Federate third-party OIDC tokens for Tailscale API access tokens.
 
 Inspired by [Octo STS](https://github.com/apps/octo-sts) and [GTFO](https://github.com/thepwagner/github-token-factory-oidc)
 
+**You should not use this in production workloads. This is a hobby project.**
+
 ## Usage
 
 ### Workflow Overview
