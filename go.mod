@@ -3,7 +3,7 @@ module github.com/jacobmichels/tail-sts
 go 1.22.3
 
 require (
-	github.com/MicahParks/jwkset v0.5.19
+	github.com/MicahParks/jwkset v0.5.20
 	github.com/MicahParks/keyfunc/v3 v3.3.5
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/pelletier/go-toml/v2 v2.2.3
