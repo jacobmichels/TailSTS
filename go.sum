@@ -1,7 +1,7 @@
-github.com/MicahParks/jwkset v0.6.0 h1:l9BdSMVzhmEFXTTlTPIhK2FuDTFYawMA1hrpxQRajBI=
-github.com/MicahParks/jwkset v0.6.0/go.mod h1:lNJLP4R63A/8lT9GO6FWOr/fIooTSwViFijyxwIW9EU=
-github.com/MicahParks/keyfunc/v3 v3.3.5 h1:7ceAJLUAldnoueHDNzF8Bx06oVcQ5CfJnYwNt1U3YYo=
-github.com/MicahParks/keyfunc/v3 v3.3.5/go.mod h1:SdCCyMJn/bYqWDvARspC6nCT8Sk74MjuAY22C7dCST8=
+github.com/MicahParks/jwkset v0.7.0 h1:CXWuiYBk5NuTl+N/3UI3UcYNH79yWuKAZWZkc/y+7Ok=
+github.com/MicahParks/jwkset v0.7.0/go.mod h1:fVrj6TmG1aKlJEeceAz7JsXGTXEn72zP1px3us53JrA=
+github.com/MicahParks/keyfunc/v3 v3.3.8 h1:e/LZSz1hIcuHVf/Rzy3a4NkPQd+WG2IZM/cTeFKqTsk=
+github.com/MicahParks/keyfunc/v3 v3.3.8/go.mod h1:xDAde0iTn/PMsJg8F6c1AjMheTT3IXPqCCNulk24eww=
 github.com/cpuguy83/go-md2man/v2 v2.0.5 h1:ZtcqGrnekaHpVLArFSe4HK5DoKx1T0rq2DwVB0alcyc=
 github.com/cpuguy83/go-md2man/v2 v2.0.5/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
