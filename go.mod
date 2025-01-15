@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/MicahParks/jwkset v0.8.0
-	github.com/MicahParks/keyfunc/v3 v3.3.8
+	github.com/MicahParks/keyfunc/v3 v3.3.10
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/stretchr/testify v1.10.0
