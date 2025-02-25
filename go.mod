@@ -1,6 +1,8 @@
 module github.com/jacobmichels/tail-sts
 
-go 1.22.3
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/MicahParks/jwkset v0.8.0
@@ -9,7 +11,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.5
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.27.0
 )
 
 require (
