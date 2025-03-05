@@ -2,7 +2,7 @@ module github.com/jacobmichels/tail-sts
 
 go 1.23.0
 
-toolchain go1.24.0
+toolchain go1.24.1
 
 require (
 	github.com/MicahParks/jwkset v0.8.0
