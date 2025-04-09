@@ -8,7 +8,7 @@ require (
 	github.com/MicahParks/jwkset v0.9.5
 	github.com/MicahParks/keyfunc/v3 v3.3.10
 	github.com/golang-jwt/jwt/v5 v5.2.2
-	github.com/pelletier/go-toml/v2 v2.2.3
+	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v2 v2.27.6
 	golang.org/x/oauth2 v0.29.0
