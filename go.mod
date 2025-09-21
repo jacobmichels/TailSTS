@@ -5,8 +5,8 @@ go 1.24.0
 toolchain go1.25.1
 
 require (
-	github.com/MicahParks/jwkset v0.10.0
-	github.com/MicahParks/keyfunc/v3 v3.6.1
+	github.com/MicahParks/jwkset v0.11.0
+	github.com/MicahParks/keyfunc/v3 v3.6.2
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/stretchr/testify v1.11.1
