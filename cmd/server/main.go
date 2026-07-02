@@ -7,7 +7,7 @@ import (
 
 	"github.com/jacobmichels/tail-sts/pkg/policy"
 	"github.com/jacobmichels/tail-sts/pkg/server"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
